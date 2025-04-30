@@ -1,6 +1,6 @@
 # UniReverse
 
-A modern booking and management platform for university clubs and administrators, built with Next.js, TypeScript, Tailwind CSS, and Supabase. This app is designed for university clubs to reserve stadiums, with access restricted to registered clubs approved by the admin. This project is part of the Master Coding Local initiative in Laghouat.
+A modern booking and management platform for university clubs and administrators, built with Next.js, TypeScript, Tailwind CSS, and Supabase. This app is designed for university clubs to reserve stadiums, with access restricted to registered clubs approved by the admin. **This project is the main development task assigned as part of the Master Coding Local initiative in Laghouat!**
 
 ## Features
 
