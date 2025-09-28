@@ -62,33 +62,15 @@ export default function FriendlyMatches() {
     const fetchMatches = async () => {
       setIsLoading(true)
       try {
-        // In a real app, this would be an API call
-        // For now, we'll use mock data
-        await new Promise((resolve) => setTimeout(resolve, 1000))
-
-        setMatches([
-          {
-            id: "1",
-            hostId: "2",
-            hostName: "نجوم كرة القدم",
-            sportId: "football",
-            date: "2025-04-28",
-            time: "14:00",
-            status: "open",
-          },
-          {
-            id: "2",
-            hostId: "3",
-            hostName: "نادي كرة السلة",
-            sportId: "basketball",
-            date: "2025-04-25",
-            time: "08:00",
-            status: "confirmed",
-            guestId: "1",
-            guestName: "نادي أثلتيك يونايتد",
-          },
-        ])
+        const response = await fetch('/api/friendly-matches')
+        if (response.ok) {
+          const data = await response.json()
+          setMatches(data)
+        } else {
+          throw new Error('Failed to fetch matches')
+        }
       } catch (error) {
+        console.error('Error fetching friendly matches:', error)
         toast({
           title: language === "ar" ? "خطأ في تحميل المباريات" : "Error loading matches",
           description:
@@ -122,29 +104,39 @@ export default function FriendlyMatches() {
     }
 
     try {
-      // In a real app, this would be an API call
-      await new Promise((resolve) => setTimeout(resolve, 500))
-
-      const newMatch: FriendlyMatch = {
-        id: Date.now().toString(),
-        hostId: "1", // Current user's club ID
-        hostName: "نادي أثلتيك يونايتد", // Current user's club name
-        sportId: formData.sportId,
-        date: formData.date,
-        time: formData.time,
-        status: "open",
-      }
-
-      setMatches([newMatch, ...matches])
-      setIsCreateDialogOpen(false)
-      setFormData({ sportId: "", date: "", time: "" })
-
-      toast({
-        title: language === "ar" ? "تم إنشاء المباراة" : "Match Created",
-        description:
-          language === "ar" ? "تم إنشاء المباراة الودية بنجاح" : "The friendly match has been created successfully",
+      const response = await fetch('/api/friendly-matches', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          hostId: "1", // This should be the current user's ID
+          stadiumId: formData.sportId, // Assuming sportId maps to stadiumId
+          date: formData.date,
+          time: formData.time,
+          team1: "My Team", // This should be dynamic
+          team2: "Open", // This should be dynamic
+          sportId: formData.sportId,
+        }),
       })
+
+      if (response.ok) {
+        const newMatch = await response.json()
+        setMatches([newMatch, ...matches])
+        setIsCreateDialogOpen(false)
+        setFormData({ sportId: "", date: "", time: "" })
+
+        toast({
+          title: language === "ar" ? "تم إنشاء المباراة" : "Match Created",
+          description:
+            language === "ar" ? "تم إنشاء المباراة الودية بنجاح" : "The friendly match has been created successfully",
+        })
+      } else {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to create match')
+      }
     } catch (error) {
+      console.error('Error creating friendly match:', error)
       toast({
         title: language === "ar" ? "فشل إنشاء المباراة" : "Match Creation Failed",
         description:
@@ -158,28 +150,43 @@ export default function FriendlyMatches() {
 
   const handleJoinMatch = async (matchId: string) => {
     try {
-      // In a real app, this would be an API call
-      await new Promise((resolve) => setTimeout(resolve, 500))
-
-      setMatches(
-        matches.map((match) =>
-          match.id === matchId
-            ? {
-                ...match,
-                status: "confirmed",
-                guestId: "1", // Current user's club ID
-                guestName: "نادي أثلتيك يونايتد", // Current user's club name
-              }
-            : match,
-        ),
-      )
-
-      toast({
-        title: language === "ar" ? "تم الانضمام للمباراة" : "Joined Match",
-        description:
-          language === "ar" ? "تم الانضمام للمباراة الودية بنجاح" : "You have successfully joined the friendly match",
+      const response = await fetch('/api/friendly-matches', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          matchId,
+          guestId: "1", // This should be the current user's ID
+          status: 'confirmed'
+        }),
       })
+
+      if (response.ok) {
+        setMatches(
+          matches.map((match) =>
+            match.id === matchId
+              ? {
+                  ...match,
+                  status: "confirmed",
+                  guestId: "1", // Current user's club ID
+                  guestName: "نادي أثلتيك يونايتد", // Current user's club name
+                }
+              : match,
+          ),
+        )
+
+        toast({
+          title: language === "ar" ? "تم الانضمام للمباراة" : "Joined Match",
+          description:
+            language === "ar" ? "تم الانضمام للمباراة الودية بنجاح" : "You have successfully joined the friendly match",
+        })
+      } else {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to join match')
+      }
     } catch (error) {
+      console.error('Error joining friendly match:', error)
       toast({
         title: language === "ar" ? "فشل الانضمام للمباراة" : "Join Failed",
         description:

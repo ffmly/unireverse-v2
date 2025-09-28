@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/lib/auth-context"
 import { LanguageProvider } from "@/lib/language-context"
 import { Toaster } from "@/components/ui/toaster"
+import { ExpiredReservationsService } from "@/lib/expiredReservationsService"
 
 export default function ClientLayout({
   children,
@@ -24,6 +25,9 @@ export default function ClientLayout({
         },
       )
     }
+
+    // Initialize expired reservations cleanup
+    ExpiredReservationsService.scheduleExpiredReservationsCleanup();
   }, [])
 
   return (

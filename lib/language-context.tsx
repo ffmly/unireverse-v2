@@ -17,7 +17,7 @@ const translations: Record<string, Record<Language, string>> = {
   // Login page
   "login.title": {
     ar: "نظام حجز الملاعب الرياضية",
-    en: "Sports Field Reservation System",
+    en: "Stadium Booking System",
   },
   "login.form.title": {
     ar: "تسجيل الدخول",
@@ -48,10 +48,60 @@ const translations: Record<string, Record<Language, string>> = {
     en: "Invalid username or password",
   },
 
+  // Registration page
+  "register.form.title": {
+    ar: "إنشاء حساب جديد",
+    en: "Create New Account",
+  },
+  "register.form.description": {
+    ar: "سجل حسابك للوصول إلى نظام حجز الملاعب",
+    en: "Register your account to access the stadium booking system",
+  },
+  "register.form.fullName": {
+    ar: "الاسم الكامل",
+    en: "Full Name",
+  },
+  "register.form.studentId": {
+    ar: "رقم الطالب",
+    en: "Student ID",
+  },
+  "register.form.email": {
+    ar: "البريد الإلكتروني",
+    en: "Email",
+  },
+  "register.form.password": {
+    ar: "كلمة المرور",
+    en: "Password",
+  },
+  "register.form.confirmPassword": {
+    ar: "تأكيد كلمة المرور",
+    en: "Confirm Password",
+  },
+  "register.form.submit": {
+    ar: "إنشاء الحساب",
+    en: "Create Account",
+  },
+  "register.form.loading": {
+    ar: "جاري إنشاء الحساب...",
+    en: "Creating account...",
+  },
+  "register.form.error": {
+    ar: "حدث خطأ أثناء إنشاء الحساب",
+    en: "An error occurred while creating the account",
+  },
+  "register.form.passwordMismatch": {
+    ar: "كلمات المرور غير متطابقة",
+    en: "Passwords do not match",
+  },
+
   // Booking page
   "booking.welcome": {
     ar: "مرحباً،",
     en: "Welcome,",
+  },
+  "booking.userProfile": {
+    ar: "ملفك الشخصي",
+    en: "Your Profile",
   },
   "booking.logout": {
     ar: "تسجيل الخروج",

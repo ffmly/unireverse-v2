@@ -37,9 +37,11 @@ export default function BookingPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">
-            {t("booking.welcome")} {user.clubName}
+            {t("booking.welcome")} {user.fullName}
           </h1>
-          <p className="text-muted-foreground">{user.department}</p>
+          <p className="text-muted-foreground">
+            {t("booking.userProfile")} - {user.studentId}
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <Notifications />

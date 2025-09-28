@@ -1,79 +1,192 @@
-# UniReverse
+# 🏟️ StadiumBook - Stadium Management System
 
-A modern booking and management platform for university clubs and administrators, built with Next.js, TypeScript, Tailwind CSS, and Supabase. This app is designed for university clubs to reserve stadiums, with access restricted to registered clubs approved by the admin. **This project is the main development task assigned as part of the Master Coding Local initiative in Laghouat!**
+comprehensive stadium booking and management system built for university clubs, featuring real-time availability, friendly match creation, and multi-platform support.
 
-## Features
+## 🚀 Features
 
-- **User Authentication**: Secure login with role-based access (admin, club).
-- **Multi-language Support**: Easily switch between languages (LTR/RTL, e.g., Arabic).
-- **Theme Toggle**: Light and dark mode support.
-- **Booking System**: Clubs can book time slots via an interactive calendar.
-- **User Reservations**: View and manage your own reservations.
-- **Friendly Matches**: Organize and join friendly matches.
-- **Admin Dashboard**: Manage clubs, reservations, stadiums, time slots, and auto-assignments.
-- **Notifications**: Real-time updates and alerts.
-- **Responsive UI**: Mobile-friendly and accessible design.
+### Core Functionality
+- **Stadium Booking System** - Real-time availability with conflict prevention
+- **Friendly Match Management** - Create and join matches with player count tracking
+- **Multi-Platform Support** - Web application and mobile app (iOS/Android)
+- **Stadium Independence** - Each stadium operates independently
+- **Real-time Updates** - Live synchronization across all platforms
 
-## Tech Stack
+### Security & Performance
+- **Enterprise-level Security** - AES-256 encryption, input validation, rate limiting
+- **Authentication & Authorization** - Firebase Auth with role-based access control
+- **Data Protection** - Comprehensive input sanitization and SQL injection prevention
+- **API Security** - Rate limiting and request validation
 
-- [Next.js](https://nextjs.org/) (App Router, TypeScript)
-- [Tailwind CSS](https://tailwindcss.com/) (with custom themes)
-- [Radix UI](https://www.radix-ui.com/), [React Hook Form](https://react-hook-form.com/), [Zod](https://zod.dev/)
-- [Supabase](https://supabase.com/) (for backend/auth)
+### Admin Features
+- **Dashboard Management** - Complete admin control panel
+- **User Management** - Add, edit, and manage club members
+- **Reservation Monitoring** - Real-time booking oversight
+- **Stadium Configuration** - Add new stadiums and time slots
 
-## Getting Started
+## 🛠️ Tech Stack
+
+### Frontend
+- **Web**: Next.js 15, TypeScript, Tailwind CSS
+- **Mobile**: React Native, Expo
+- **State Management**: React Context API, Custom Hooks
+
+### Backend
+- **Database**: Firebase Firestore (NoSQL)
+- **Authentication**: Firebase Auth
+- **API**: Next.js API Routes with RESTful architecture
+
+### Security & Validation
+- **Input Validation**: Zod schemas
+- **Data Sanitization**: XSS prevention
+- **Rate Limiting**: API protection
+- **Encryption**: AES-256 for sensitive data
+
+## 📱 Platforms
+
+### Web Application
+- **URL**: `http://localhost:3000` (development)
+- **Features**: Admin dashboard, booking management, user oversight
+- **Access**: Administrators and club members
+
+### Mobile Application
+- **Platform**: React Native with Expo
+- **Features**: Mobile booking, friendly matches, push notifications
+- **Access**: All club members
+
+## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js (v18+ recommended)
-- pnpm (or npm/yarn)
+- Node.js 18+ 
+- npm or yarn
+- Firebase project
+- Expo CLI (for mobile development)
 
 ### Installation
 
-```bash
-pnpm install
+1. **Clone the repository**
+
+2. **Install dependencies**
+
+
+3. **Environment Setup**
+   Create `.env.local` file in the root directory:
+   ```env
+   # Firebase Client Configuration
+   NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+   NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+   NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+   NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_measurement_id
+
+   # Firebase Admin Configuration (Server-side)
+   FIREBASE_PROJECT_ID=your_project_id
+   FIREBASE_CLIENT_EMAIL=your_service_account_email
+   FIREBASE_PRIVATE_KEY="your_private_key"
+
+   # Encryption Key (32 characters)
+   ENCRYPTION_KEY=your_32_character_encryption_key
+   ```
+
+
+ **Mobile App Setup**
+   ```bash
+   cd mobile-app
+   npm install
+   
+   # Create mobile environment file
+   echo "EXPO_PUBLIC_FIREBASE_API_KEY=your_api_key
+   EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+   EXPO_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+   EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+   EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+   EXPO_PUBLIC_FIREBASE_APP_ID=your_app_id" > .env
+   
+   npx expo start
+   ```
+
+## 🔧 Configuration
+
+### Firebase Setup
+1. Create a Firebase project
+2. Enable Authentication (Email/Password)
+3. Create Firestore database
+4. Generate service account key
+5. Update environment variables
+
+### Database Structure
+```
+stadiums/
+  - {stadiumId}/
+    - name: string
+    - location: string
+    - capacity: number
+    - facilities: string[]
+
+bookings/
+  - {bookingId}/
+    - user_id: string
+    - stadium_id: string
+    - date: string
+    - time_slot_id: string
+    - createdAt: timestamp
+
+friendlyMatches/
+  - {matchId}/
+    - hostId: string
+    - stadiumId: string
+    - date: string
+    - time: string
+    - team1: string
+    - team2: string
+    - maxPlayers: number
+    - currentPlayers: number
+    - status: string
 ```
 
-### Development
+## 🏗️ Architecture
 
-```bash
-pnpm dev
-```
+### System Design
+- **Microservices Architecture** - Modular API design
+- **Real-time Synchronization** - WebSocket connections
+- **Cross-platform Compatibility** - Shared business logic
+- **Scalable Database Design** - NoSQL with optimized queries
 
-Visit [http://localhost:3000](http://localhost:3000) to view the app.
+### Security Implementation
+- **Input Validation** - Zod schemas for all endpoints
+- **Authentication Middleware** - Role-based access control
+- **Rate Limiting** - API abuse prevention
+- **Data Encryption** - Sensitive data protection
 
-### Build for Production
+## 📊 API Endpoints
 
-```bash
-pnpm build
-pnpm start
-```
+### Authentication
+- `POST /api/auth/login` - User login
+- `POST /api/auth/register` - User registration
 
-## Project Structure
+### Stadiums
+- `GET /api/stadiums` - List all stadiums
+- `POST /api/stadiums` - Create stadium (admin)
 
-- `app/` — Main application pages (user, booking, admin dashboard)
-- `components/` — UI and feature components
-- `lib/` — Contexts and utilities (auth, language, etc.)
-- `public/` — Static assets
-- `styles/` — Global styles
+### Bookings
+- `GET /api/bookings` - List bookings
+- `POST /api/bookings` - Create booking
+- `DELETE /api/bookings` - Cancel booking
 
-## Customization
+### Friendly Matches
+- `GET /api/friendly-matches` - List matches
+- `POST /api/friendly-matches` - Create match
+- `PUT /api/friendly-matches` - Join/leave match
 
-- **Tailwind**: Edit `tailwind.config.ts` for theme and color changes.
-- **Languages**: Add or update translations in the language context files.
-- **Supabase**: Configure your Supabase project and environment variables as needed.
 
-## Contributing
 
-1. Fork this repo
-2. Create your feature branch (`git checkout -b feature/YourFeature`)
-3. Commit your changes (`git commit -am 'Add new feature'`)
-4. Push to the branch (`git push origin feature/YourFeature`)
-5. Open a Pull Request
 
-## License
 
-MIT
+
+
+
 
 ---
 
-> Made with ❤️ using Next.js, Tailwind CSS, and Supabase. 
+**Built with ❤️**

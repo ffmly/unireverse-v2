@@ -1,14 +1,19 @@
 import { NextResponse } from "next/server"
-import { supabase } from "@/lib/supabase"
+import { collection, getDocs, addDoc, serverTimestamp, query, where, getDocs as getDocsQuery } from "firebase/firestore"
+import { db } from "@/lib/firebase"
+import { validateData, timeSlotSchema, sanitizeObject } from "@/lib/validation"
+import { createRateLimit } from "@/lib/rateLimiter"
+import { withAdminAuth } from "@/lib/authMiddleware"
 
 export async function GET() {
   try {
-    const { data, error } = await supabase.from("time_slots").select("*")
-
-    if (error) {
-      throw error
-    }
-
+    // Direct Firestore access without authentication for public data
+    const timeSlotsSnapshot = await getDocs(collection(db, 'timeSlots'))
+    const data = timeSlotsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+    
     return NextResponse.json(data)
   } catch (error) {
     console.error("Error fetching time slots:", error)
@@ -18,36 +23,45 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { time, period } = await request.json()
-
-    // Check if time slot already exists
-    const { data: existingSlot, error: checkError } = await supabase
-      .from("time_slots")
-      .select("*")
-      .eq("time", time)
-      .eq("period", period)
-      .maybeSingle()
-
-    if (checkError) {
-      throw checkError
+    const body = await request.json()
+    
+    // Validate and sanitize input data
+    const validation = validateData(timeSlotSchema)(body)
+    if (!validation.success) {
+      return NextResponse.json({ 
+        error: "Validation failed", 
+        details: validation.errors 
+      }, { status: 400 })
     }
 
-    if (existingSlot) {
+    const { time, duration, isActive } = sanitizeObject(validation.data)
+
+    // Check if time slot already exists
+    const existingQuery = query(
+      collection(db, 'timeSlots'),
+      where('time', '==', time)
+    )
+    const existingSlots = await getDocsQuery(existingQuery)
+
+    if (!existingSlots.empty) {
       return NextResponse.json({ error: "Time slot already exists" }, { status: 400 })
     }
 
-    // Insert new time slot
-    const { data, error } = await supabase
-      .from("time_slots")
-      .insert([{ time, period, enabled: true }])
-      .select()
-      .single()
-
-    if (error) {
-      throw error
+    // Create time slot in Firestore
+    const timeSlotData = {
+      time,
+      duration,
+      isActive: isActive !== undefined ? isActive : true,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
     }
 
-    return NextResponse.json(data)
+    const docRef = await addDoc(collection(db, 'timeSlots'), timeSlotData)
+    
+    return NextResponse.json({
+      id: docRef.id,
+      ...timeSlotData
+    })
   } catch (error) {
     console.error("Error creating time slot:", error)
     return NextResponse.json({ error: "Failed to create time slot" }, { status: 500 })

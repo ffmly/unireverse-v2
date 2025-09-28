@@ -1,14 +1,19 @@
 import { NextResponse } from "next/server"
-import { supabase } from "@/lib/supabase"
+import { collection, getDocs, addDoc, serverTimestamp } from "firebase/firestore"
+import { db } from "@/lib/firebase"
+import { validateData, stadiumSchema, sanitizeObject } from "@/lib/validation"
+import { createRateLimit } from "@/lib/rateLimiter"
+import { withAdminAuth } from "@/lib/authMiddleware"
 
 export async function GET() {
   try {
-    const { data, error } = await supabase.from("stadiums").select("*")
-
-    if (error) {
-      throw error
-    }
-
+    // Direct Firestore access without authentication for public data
+    const stadiumsSnapshot = await getDocs(collection(db, 'stadiums'))
+    const data = stadiumsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+    
     return NextResponse.json(data)
   } catch (error) {
     console.error("Error fetching stadiums:", error)
@@ -18,19 +23,36 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { name, sportId } = await request.json()
-
-    const { data, error } = await supabase
-      .from("stadiums")
-      .insert([{ name, sport_id: sportId, enabled: true }])
-      .select()
-      .single()
-
-    if (error) {
-      throw error
+    const body = await request.json()
+    
+    // Validate and sanitize input data
+    const validation = validateData(stadiumSchema)(body)
+    if (!validation.success) {
+      return NextResponse.json({ 
+        error: "Validation failed", 
+        details: validation.errors 
+      }, { status: 400 })
     }
 
-    return NextResponse.json(data)
+    const { name, location, capacity, facilities } = sanitizeObject(validation.data)
+
+    // Create stadium in Firestore
+    const stadiumData = {
+      name,
+      location,
+      capacity,
+      facilities: facilities || [],
+      enabled: true,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    }
+
+    const docRef = await addDoc(collection(db, 'stadiums'), stadiumData)
+    
+    return NextResponse.json({
+      id: docRef.id,
+      ...stadiumData
+    })
   } catch (error) {
     console.error("Error creating stadium:", error)
     return NextResponse.json({ error: "Failed to create stadium" }, { status: 500 })

@@ -11,7 +11,10 @@ import { cn } from "@/lib/utils"
 import { useLanguage } from "@/lib/language-context"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/lib/auth-context"
+import { WebNotificationService } from "@/lib/notificationService"
 import Image from "next/image"
+import { collection, query, where, getDocs } from "firebase/firestore"
+import { db } from "@/lib/firebase"
 
 // Types
 type Sport = "basketball" | "handball" | "football"
@@ -53,23 +56,24 @@ export default function BookingCalendar({ userId }: BookingCalendarProps) {
   })
   const [availableStadiums, setAvailableStadiums] = useState<Stadium[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [bookedTimeSlots, setBookedTimeSlots] = useState<Set<string>>(new Set())
 
-  // Mock data - in a real app, this would come from the API
+  // Sports configuration
   const sports: { id: Sport; name: string; imageSrc: string }[] = [
     {
       id: "basketball",
       name: t("sports.basketball"),
-      imageSrc: "/images/basketball.png",
+      imageSrc: "/placeholder.svg",
     },
     {
       id: "handball",
       name: t("sports.handball"),
-      imageSrc: "/images/handball.png",
+      imageSrc: "/placeholder.svg",
     },
     {
       id: "football",
       name: t("sports.football"),
-      imageSrc: "/images/football.png",
+      imageSrc: "/placeholder.svg",
     },
   ]
 
@@ -156,6 +160,57 @@ export default function BookingCalendar({ userId }: BookingCalendarProps) {
     }
   }, [selectedSport, selectedDate, language])
 
+  // Fetch booked time slots when stadiums are loaded
+  useEffect(() => {
+    if (selectedDate && availableStadiums.length > 0) {
+      fetchBookedTimeSlots(selectedDate, availableStadiums)
+    }
+  }, [selectedDate, availableStadiums])
+
+  // Check if a time slot is already booked
+  const checkExistingBooking = async (stadiumId: string, date: string, timeSlotId: string) => {
+    try {
+      const bookingsQuery = query(
+        collection(db, 'bookings'),
+        where('stadium_id', '==', stadiumId),
+        where('date', '==', date),
+        where('time_slot_id', '==', timeSlotId)
+      )
+      
+      const bookingsSnapshot = await getDocs(bookingsQuery)
+      return !bookingsSnapshot.empty
+    } catch (error) {
+      console.error('Error checking existing booking:', error)
+      return false
+    }
+  }
+
+  // Fetch booked time slots for the selected date and stadium
+  const fetchBookedTimeSlots = async (date: string, stadiums: Stadium[]) => {
+    try {
+      const bookedSlots = new Set<string>()
+      
+      // Check bookings for each stadium
+      for (const stadium of stadiums) {
+        const bookingsQuery = query(
+          collection(db, 'bookings'),
+          where('stadium_id', '==', stadium.id),
+          where('date', '==', date)
+        )
+        
+        const bookingsSnapshot = await getDocs(bookingsQuery)
+        bookingsSnapshot.docs.forEach(doc => {
+          const booking = doc.data()
+          bookedSlots.add(booking.time_slot_id)
+        })
+      }
+      
+      setBookedTimeSlots(bookedSlots)
+    } catch (error) {
+      console.error('Error fetching booked time slots:', error)
+    }
+  }
+
   const handleBooking = async () => {
     if (!user || !selectedSport || !selectedDate || !selectedTimeSlotId || !selectedStadium) {
       toast({
@@ -172,6 +227,21 @@ export default function BookingCalendar({ userId }: BookingCalendarProps) {
     setIsLoading(true)
 
     try {
+      // Check if this time slot is already booked
+      const isAlreadyBooked = await checkExistingBooking(selectedStadium, selectedDate, selectedTimeSlotId)
+      
+      if (isAlreadyBooked) {
+        toast({
+          title: language === "ar" ? "الحجز غير متاح" : "Booking Not Available",
+          description:
+            language === "ar"
+              ? "هذا الوقت محجوز بالفعل. يرجى اختيار وقت آخر."
+              : "This time slot is already booked. Please select another time.",
+          variant: "destructive",
+        })
+        setIsLoading(false)
+        return
+      }
       const response = await fetch("/api/bookings", {
         method: "POST",
         headers: {
@@ -191,6 +261,13 @@ export default function BookingCalendar({ userId }: BookingCalendarProps) {
       }
 
       const stadium = availableStadiums.find((s) => s.id === selectedStadium)
+
+      // Send web notification
+      await WebNotificationService.sendBookingConfirmation({
+        stadium: stadium?.name || 'Unknown Stadium',
+        date: selectedDate,
+        time: selectedTime,
+      })
 
       toast({
         title: language === "ar" ? "تم الحجز بنجاح" : "Booking Successful",
@@ -317,19 +394,25 @@ export default function BookingCalendar({ userId }: BookingCalendarProps) {
               <div className="grid grid-cols-3 gap-2">
                 {availableTimeSlots.morning
                   .filter((slot) => slot.enabled)
-                  .map((slot) => (
-                    <Button
-                      key={slot.id}
-                      variant={selectedTimeSlotId === slot.id ? "default" : "outline"}
-                      className="text-lg"
-                      onClick={() => {
-                        setSelectedTime(slot.time)
-                        setSelectedTimeSlotId(slot.id)
-                      }}
-                    >
-                      {slot.time}
-                    </Button>
-                  ))}
+                  .map((slot) => {
+                    const isBooked = bookedTimeSlots.has(slot.id)
+                    return (
+                      <Button
+                        key={slot.id}
+                        variant={selectedTimeSlotId === slot.id ? "default" : "outline"}
+                        className={`text-lg ${isBooked ? "opacity-50 cursor-not-allowed" : ""}`}
+                        disabled={isBooked}
+                        onClick={() => {
+                          if (!isBooked) {
+                            setSelectedTime(slot.time)
+                            setSelectedTimeSlotId(slot.id)
+                          }
+                        }}
+                      >
+                        {isBooked ? `${slot.time} (Booked)` : slot.time}
+                      </Button>
+                    )
+                  })}
                 {availableTimeSlots.morning.filter((slot) => slot.enabled).length === 0 && (
                   <div className="col-span-3 text-center py-2 text-muted-foreground">
                     {language === "ar" ? "لا توجد أوقات متاحة في الفترة الصباحية" : "No available morning time slots"}
@@ -346,19 +429,25 @@ export default function BookingCalendar({ userId }: BookingCalendarProps) {
               <div className="grid grid-cols-3 gap-2">
                 {availableTimeSlots.afternoon
                   .filter((slot) => slot.enabled)
-                  .map((slot) => (
-                    <Button
-                      key={slot.id}
-                      variant={selectedTimeSlotId === slot.id ? "default" : "outline"}
-                      className="text-lg"
-                      onClick={() => {
-                        setSelectedTime(slot.time)
-                        setSelectedTimeSlotId(slot.id)
-                      }}
-                    >
-                      {slot.time}
-                    </Button>
-                  ))}
+                  .map((slot) => {
+                    const isBooked = bookedTimeSlots.has(slot.id)
+                    return (
+                      <Button
+                        key={slot.id}
+                        variant={selectedTimeSlotId === slot.id ? "default" : "outline"}
+                        className={`text-lg ${isBooked ? "opacity-50 cursor-not-allowed" : ""}`}
+                        disabled={isBooked}
+                        onClick={() => {
+                          if (!isBooked) {
+                            setSelectedTime(slot.time)
+                            setSelectedTimeSlotId(slot.id)
+                          }
+                        }}
+                      >
+                        {isBooked ? `${slot.time} (Booked)` : slot.time}
+                      </Button>
+                    )
+                  })}
                 {availableTimeSlots.afternoon.filter((slot) => slot.enabled).length === 0 && (
                   <div className="col-span-3 text-center py-2 text-muted-foreground">
                     {language === "ar"
