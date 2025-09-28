@@ -1,6 +1,6 @@
 // API Configuration
-// Change this to your computer's IP address if localhost doesn't work
-export const API_BASE_URL = 'http://192.168.0.151:3000';
+// Use environment variable for production, fallback to localhost for development
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
 export const API_ENDPOINTS = {
   USERS: `${API_BASE_URL}/api/users`,
