@@ -1,14 +1,13 @@
-#  Stadium Management System
+# 🏟️ StadiumBook - Stadium Management System
 
 comprehensive stadium booking and management system built for university clubs, featuring real-time availability, friendly match creation, and multi-platform support.
 
-##  Features
+## 🚀 Features
 
 ### Core Functionality
 - **Stadium Booking System** - Real-time availability with conflict prevention
 - **Friendly Match Management** - Create and join matches with player count tracking
 - **Multi-Platform Support** - Web application and mobile app (iOS/Android)
-- **Stadium Independence** - Each stadium operates independently
 - **Real-time Updates** - Live synchronization across all platforms
 
 
@@ -24,12 +23,12 @@ comprehensive stadium booking and management system built for university clubs, 
 ### Frontend
 - **Web**: Next.js 15, TypeScript, Tailwind CSS
 - **Mobile**: React Native, Expo
-- **State Management**: React Context API, Custom Hooks
+
 
 ### Backend
 - **Database**: Firebase Firestore (NoSQL)
 - **Authentication**: Firebase Auth
-- **API**: Next.js API Routes with RESTful architecture
+- **API**: Next.js API Routes 
 
 ### Security & Validation
 - **Input Validation**: Zod schemas
@@ -37,13 +36,72 @@ comprehensive stadium booking and management system built for university clubs, 
 - **Rate Limiting**: API protection
 - **Encryption**: AES-256 for sensitive data
 
+## 📱 Platforms
+
+### Web Application
+
+- **Features**: Admin dashboard, booking management
+- **Access**: Administrators and club members
+
+### Mobile Application
+- **Platform**: React Native with Expo
+- **Features**: Mobile booking, friendly matches, push notifications
+- **Access**: All club members
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+- Firebase project
+- Expo CLI (for mobile development)
+
+### Installation
+
+1. **Clone the repository**
+
+2. **Install dependencies**
 
 
+3. **Environment Setup**
+   Create `.env.local` file in the root directory:
+   ```env
+   # Firebase Client Configuration
+   NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+   NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+   NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+   NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_measurement_id
+
+   # Firebase Admin Configuration (Server-side)
+   FIREBASE_PROJECT_ID=your_project_id
+   FIREBASE_CLIENT_EMAIL=your_service_account_email
+   FIREBASE_PRIVATE_KEY="your_private_key"
+
+   # Encryption Key (32 characters)
+   ENCRYPTION_KEY=your_32_character_encryption_key
+   ```
 
 
+ **Mobile App Setup**
+   ```bash
+   cd mobile-app
+   npm install
+   
+   # Create mobile environment file
+   echo "EXPO_PUBLIC_FIREBASE_API_KEY=your_api_key
+   EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+   EXPO_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+   EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+   EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+   EXPO_PUBLIC_FIREBASE_APP_ID=your_app_id" > .env
+   
+   npx expo start
+   ```
 
-
-
+## 🔧 Configuration
 
 ### Firebase Setup
 1. Create a Firebase project
@@ -82,6 +140,7 @@ friendlyMatches/
     - status: string
 ```
 
+## 🏗️ Architecture
 
 ### System Design
 - **Microservices Architecture** - Modular API design
@@ -89,7 +148,11 @@ friendlyMatches/
 - **Cross-platform Compatibility** - Shared business logic
 - **Scalable Database Design** - NoSQL with optimized queries
 
-
+### Security Implementation
+- **Input Validation** - Zod schemas for all endpoints
+- **Authentication Middleware** - Role-based access control
+- **Rate Limiting** - API abuse prevention
+- **Data Encryption** - Sensitive data protection
 
 ## 📊 API Endpoints
 
@@ -113,12 +176,5 @@ friendlyMatches/
 
 
 
-
-
-
-
-
-
----
 
 **Built with ❤️**

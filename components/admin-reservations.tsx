@@ -56,6 +56,7 @@ export default function AdminReservations() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null)
+  const [showExpired, setShowExpired] = useState(false)
 
   // Form state
   const [formData, setFormData] = useState({
@@ -349,6 +350,44 @@ export default function AdminReservations() {
     }
   }
 
+  // Filter reservations based on expired status
+  const isReservationExpired = (reservation: Reservation) => {
+    const reservationDate = new Date(reservation.date)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return reservationDate < today
+  }
+
+  const filteredReservations = showExpired 
+    ? reservations.filter(isReservationExpired)
+    : reservations.filter(reservation => !isReservationExpired(reservation))
+
+  const handleDeleteExpiredReservations = async () => {
+    if (!confirm(language === "ar" ? "هل أنت متأكد من رغبتك في حذف جميع الحجوزات المنتهية الصلاحية؟" : "Are you sure you want to delete all expired reservations?")) return
+
+    try {
+      const expiredReservations = reservations.filter(isReservationExpired)
+      const deletePromises = expiredReservations.map(reservation => 
+        fetch(`/api/bookings/${reservation.id}`, { method: 'DELETE' })
+      )
+
+      await Promise.all(deletePromises)
+      setReservations(reservations.filter(reservation => !isReservationExpired(reservation)))
+
+      toast({
+        title: language === "ar" ? "تم حذف الحجوزات المنتهية" : "Expired Reservations Deleted",
+        description: language === "ar" ? `تم حذف ${expiredReservations.length} حجز منتهي الصلاحية` : `${expiredReservations.length} expired reservations have been deleted`,
+      })
+    } catch (error) {
+      console.error('Error deleting expired reservations:', error)
+      toast({
+        title: language === "ar" ? "فشل حذف الحجوزات" : "Failed to Delete Reservations",
+        description: language === "ar" ? "حدث خطأ أثناء محاولة حذف الحجوزات المنتهية الصلاحية" : "An error occurred while trying to delete expired reservations",
+        variant: "destructive",
+      })
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -486,13 +525,28 @@ export default function AdminReservations() {
     <div>
       <div className="mb-6 flex justify-between">
         <h2 className="text-xl font-semibold">إدارة الحجوزات</h2>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              إضافة حجز جديد
+        <div className="flex gap-2">
+          <Button
+            variant={showExpired ? "default" : "outline"}
+            onClick={() => setShowExpired(!showExpired)}
+          >
+            {showExpired ? "عرض الحجوزات النشطة" : "عرض الحجوزات المنتهية"}
+          </Button>
+          {showExpired && reservations.filter(isReservationExpired).length > 0 && (
+            <Button
+              variant="destructive"
+              onClick={handleDeleteExpiredReservations}
+            >
+              حذف جميع المنتهية ({reservations.filter(isReservationExpired).length})
             </Button>
-          </DialogTrigger>
+          )}
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                إضافة حجز جديد
+              </Button>
+            </DialogTrigger>
           <DialogContent dir="rtl">
             <DialogHeader>
               <DialogTitle>إضافة حجز جديد</DialogTitle>
@@ -590,6 +644,7 @@ export default function AdminReservations() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <Card>
@@ -606,11 +661,20 @@ export default function AdminReservations() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {reservations.map((reservation) => (
-                <TableRow key={reservation.id}>
+              {filteredReservations.map((reservation) => (
+                <TableRow key={reservation.id} className={isReservationExpired(reservation) ? "bg-red-50 dark:bg-red-950" : ""}>
                   <TableCell>{reservation.clubName}</TableCell>
                   <TableCell>{reservation.sportName}</TableCell>
-                  <TableCell>{format(new Date(reservation.date), "dd/MM/yyyy")}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {format(new Date(reservation.date), "dd/MM/yyyy")}
+                      {isReservationExpired(reservation) && (
+                        <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full">
+                          منتهي
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>{reservation.time}</TableCell>
                   <TableCell>{reservation.fieldName}</TableCell>
                   <TableCell>

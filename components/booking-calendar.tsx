@@ -63,7 +63,7 @@ export default function BookingCalendar({ userId }: BookingCalendarProps) {
     {
       id: "basketball",
       name: t("sports.basketball"),
-      imageSrc: "/placeholder.svg",
+      imageSrc: "/images/basketball-icon.png",
     },
     {
       id: "handball",
@@ -73,7 +73,7 @@ export default function BookingCalendar({ userId }: BookingCalendarProps) {
     {
       id: "football",
       name: t("sports.football"),
-      imageSrc: "/placeholder.svg",
+      imageSrc: "/images/football-icon.png",
     },
   ]
 
