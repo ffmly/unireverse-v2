@@ -201,13 +201,13 @@ export default function FriendlyMatches() {
   const getSportIcon = (sportId: string) => {
     switch (sportId) {
       case "basketball":
-        return <Image src="/images/basketball-icon.png" alt="Basketball" width={20} height={20} className="object-contain" />
+        return <Basketball className="h-5 w-5 text-orange-500" />
       case "handball":
         return <HandIcon className="h-5 w-5 text-purple-500" />
       case "football":
-        return <Image src="/images/football-icon.png" alt="Football" width={20} height={20} className="object-contain" />
+        return <Football className="h-5 w-5 text-blue-500" />
       default:
-        return <Image src="/images/basketball-icon.png" alt="Basketball" width={20} height={20} className="object-contain" />
+        return <Basketball className="h-5 w-5" />
     }
   }
 
